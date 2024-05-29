@@ -1,88 +1,102 @@
-CREATE DATABASE reserva_hoteis; 
+CREATE DATABASE IF NOT EXISTS reserva_hotel; 
 
-use reserva_hoteis;
+USE reserva_hotel;
 
-CREATE TABLE CLIENTE(
+CREATE TABLE CLIENTE (
 	nome_completo VARCHAR(100),
 	cpf VARCHAR(20),
 	idade INTEGER,
-	user_name VARCHAR(30),
 	senha VARCHAR(100),
 	email VARCHAR(100),
-	PRIMARY KEY(cpf, user_name)
+	PRIMARY KEY(cpf)
 );
 
-CREATE TABLE Hotel (
-    Id_hotel INT PRIMARY KEY AUTO_INCREMENT,
-    Nome VARCHAR(100) NOT NULL,
-    cnpj VARCHAR(100) NOT NULL,
-    Endereco VARCHAR(255) NOT NULL,
-    Cidade VARCHAR(100) NOT NULL,
-    Estado VARCHAR(100) NOT NULL,
-    Pais VARCHAR(100) NOT NULL,
-    Telefone VARCHAR(15),
-    Email VARCHAR(100)
-);
-
-CREATE TABLE Quarto (
+CREATE TABLE QUARTO (
     Id_quarto INT PRIMARY KEY AUTO_INCREMENT,
-    Id_hotel INT,
     NumeroQuarto VARCHAR(10) NOT NULL,
     TipoQuarto VARCHAR(50) NOT NULL, 
     Preco DECIMAL(10, 2) NOT NULL,
-    Status VARCHAR(50) NOT NULL, 
-    FOREIGN KEY (Id_hotel) REFERENCES Hotel(id_hotel)
+    Status VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE Reserva (
+CREATE TABLE RESERVA (
     Id_reserva INT PRIMARY KEY AUTO_INCREMENT,
-    Id_quarto INT,
+    FK_Id_quarto INT,
+    FK_cpf VARCHAR(20),
     DataCheckIn DATE NOT NULL,
     DataCheckOut DATE NOT NULL,
-    Status VARCHAR(50) NOT NULL, 
-    FOREIGN KEY (Id_quarto) REFERENCES Quarto(Id_quarto)
+    FOREIGN KEY (FK_Id_quarto) REFERENCES QUARTO(Id_quarto) ON DELETE CASCADE,
+    FOREIGN KEY (FK_cpf) REFERENCES CLIENTE(cpf) ON DELETE CASCADE
 );
 
+-- INSERÇÕES
 
-–Essa tabela é para cadastrar varios clientes em um quarto–
-
-CREATE TABLE ReservaCliente (
-    Id_reserva INT,
-    cpf_cliente VARCHAR(20),
-    user_name_cliente VARCHAR(30),
-    PRIMARY KEY (Id_reserva, cpf_cliente, user_name_cliente),
-    FOREIGN KEY (Id_reserva) REFERENCES Reserva(Id_reserva),
-    FOREIGN KEY (cpf_cliente, user_name_cliente) REFERENCES CLIENTE(cpf, user_name)
-);
-
-INSERÇÕES
-
-INSERT INTO Hotel (Nome, cnpj, Endereco, Cidade, Estado, Pais, Telefone, Email) VALUES ('Hotel Prime', '123.456.789/0001-01', 'Rua cinco, 123', 'ilheus', 'Bahia', 'Brasil', '733456-7890', 'contato@hotelprime.com')	
-
-INSERT INTO Hotel (Nome, cnpj, Endereco, Cidade, Estado, Pais, Telefone, Email)
-VALUES ('Hotel Aldeia', '234.567.890/0001-02', 'Avenida Olivenca, 456', 'ilheus', 'Bahia', 'Brasil', '732345-6789', 'contato@hotelaldeia.com');
-
-INSERT INTO Hotel (Nome, cnpj, Endereco, Cidade, Estado, Pais, Telefone, Email)
-VALUES ('Hotel Premium', '345.678.901/0001-03', 'Travessa dois, 789', 'ilheus', 'Bahia', 'Brasil', '733456-7890', 'contato@hotelpremium.com');
-
-
-INSERT INTO Quarto (Id_hotel, NumeroQuarto, TipoQuarto, Preco, Status)
+-- Insere quartos
+INSERT INTO QUARTO (NumeroQuarto, TipoQuarto, Preco, Status)
 VALUES 
-    (3, '101', 'Standard', 150.00, 'Disponível'),
-    (3, '102', 'Standard', 150.00, 'Disponível'),
-    (3, '201', 'Luxo', 250.00, 'Disponível');
+    ('101', 'Standard', 150.00, 'Disponível'),
+    ('102', 'Standard', 150.00, 'Disponível'),
+    ('103', 'Standard', 150.00, 'Disponível'),
+    ('200', 'Luxo', 200.00, 'Disponível'),
+    ('201', 'Luxo', 200.00, 'Disponível'),
+    ('202', 'Luxo', 200.00, 'Disponível'),
+    ('105', 'Standard', 150.00, 'Disponível'),
+    ('106', 'Standard', 150.00, 'Disponível'),
+    ('203', 'Luxo', 200.00, 'Disponível');
 
 
-INSERT INTO Quarto (Id_hotel, NumeroQuarto, TipoQuarto, Preco, Status)
-VALUES 
-    (4, '101', 'Standard', 120.00, 'Disponível'),
-    (4, '201', 'Luxo', 200.00, 'Disponível'),
-    (4, '202', 'Luxo', 200.00, 'Disponível');
+-- Insere clientes
+INSERT INTO CLIENTE (nome_completo, cpf, idade, senha, email) 
+VALUES ("Flávia Alessandra Santos de Jesus", "12134356578", 21, "fravineas123", "fullflavy@gmail.com");
+
+INSERT INTO CLIENTE (nome_completo, cpf, idade, senha, email) 
+VALUES ("Bruno Peruno", "12345678900", 24, "bruno123", "bruno@gmail.com");
+
+INSERT INTO CLIENTE (nome_completo, cpf, idade, senha, email) 
+VALUES ("Brenda Castro", "12223334456", 21, "brenda123", "brenda@gmail.com");
 
 
-INSERT INTO Quarto (Id_hotel, NumeroQuarto, TipoQuarto, Preco, Status)
-VALUES 
-    (5, '101', 'Standard', 170.00, 'Disponível'),
-    (5, '102', 'Standard', 170.00, 'Disponível'),
-    (5, '202', 'Luxo', 280.00, 'Disponível');
+-- Insere reservas
+INSERT INTO RESERVA (FK_Id_quarto, FK_cpf, DataCheckIn, DataCheckOut)
+VALUES (1, "12134356578", "2024-05-24", "2024-06-01");
 
+INSERT INTO RESERVA (FK_Id_quarto, FK_cpf, DataCheckIn, DataCheckOut)
+VALUES (2, "12345678900", "2024-06-01", "2024-06-10");
+
+INSERT INTO RESERVA (FK_Id_quarto, FK_cpf, DataCheckIn, DataCheckOut)
+VALUES (3, "12223334456", "2024-05-25", "2024-06-02");
+
+
+-- Atualiza o status do quarto (pois quando um usuario faz a reserva do quarto, 
+-- a reserva dele precisa ser atualizada para Status = ocupado)
+UPDATE QUARTO
+SET Status = "Ocupado"
+WHERE Id_quarto = 1;
+
+-- Atualiza o status do quarto (pois quando um usuario faz a reserva do quarto, 
+-- a reserva dele precisa ser atualizada para Status = ocupado
+UPDATE QUARTO 
+SET Status = "Ocupado"
+WHERE Id_quarto = 2;
+
+-- Atualiza o status do quarto (pois quando um usuario faz a reserva do quarto, 
+-- a reserva dele precisa ser atualizada para Status = ocupado
+UPDATE QUARTO
+SET Status = "Ocupado"
+WHERE Id_quarto = 3;
+
+-- Mostra todos os quartos reservados
+SELECT NumeroQuarto, TipoQuarto FROM QUARTO
+JOIN RESERVA ON QUARTO.Id_quarto = RESERVA.FK_Id_quarto
+JOIN CLIENTE ON CLIENTE.cpf = RESERVA.FK_cpf; 
+
+-- Mostra os quartos disponíveis (vai mostrar 6 quartos)
+SELECT NumeroQuarto, TipoQuarto, Preco, QUARTO.Status FROM QUARTO
+WHERE QUARTO.Status = "Disponível";
+
+-- Deleta o quarto na posição 9 (última posição)
+DELETE FROM QUARTO WHERE Id_quarto = '9';
+
+-- Mostra os quartos disponíveis (vai mostrar 5 quartos)
+SELECT NumeroQuarto, TipoQuarto, Preco, QUARTO.Status FROM QUARTO
+WHERE QUARTO.Status = "Disponível";
