@@ -111,3 +111,96 @@ WHERE QUARTO.Status = "Disponível";
 -- SELECT * FROM CLIENTE;
 -- SELECT * FROM QUARTO;
 -- SELECT * FROM RESERVA;
+
+-- Passo 1: Remover a chave estrangeira
+ALTER TABLE reserva DROP FOREIGN KEY reserva_ibfk_2;
+
+-- Passo 2: Remover a coluna
+ALTER TABLE reserva DROP COLUMN FK_cpf;
+
+ALTER TABLE reserva
+ADD COLUMN FK_Email VARCHAR(100);
+
+-- Criar um índice único na coluna 'email' da tabela 'cliente'
+ALTER TABLE cliente
+ADD UNIQUE (email);
+
+-- Adicionar a chave estrangeira na tabela 'reserva'
+ALTER TABLE reserva
+ADD CONSTRAINT fk_email
+FOREIGN KEY (FK_Email) REFERENCES cliente(email);
+
+DELETE FROM quarto WHERE Id_quarto = 10;
+DELETE FROM quarto WHERE Id_quarto = 11;
+
+CREATE TABLE metodo_pagamento (
+    id_metodoPag INT AUTO_INCREMENT PRIMARY KEY,
+    nome_metodoPag VARCHAR(100) NOT NULL
+);
+
+ALTER TABLE reserva 
+ADD COLUMN MetodoPagamento VARCHAR(255);
+
+
+ -- ==================================== USADO PARA REMOVER AS RESERVAS DEFEITUOSAS FEITAS ANTERIORMENTE ====================================
+ --
+ use reserva_hotel;
+SELECT * FROM RESERVA
+WHERE 
+    FK_Id_quarto IS NULL OR
+    DataCheckIn IS NULL OR
+    DataCheckOut IS NULL OR
+    FK_Email IS NULL OR
+    MetodoPagamento IS NULL;
+
+-- Desativa o modo seguro temporariamente
+SET SQL_SAFE_UPDATES = 0;
+
+-- Executa a exclusão
+DELETE FROM RESERVA
+WHERE 
+    FK_Id_quarto IS NULL OR
+    DataCheckIn IS NULL OR
+    DataCheckOut IS NULL OR
+    FK_Email IS NULL OR
+    MetodoPagamento IS NULL;
+
+-- Reativa o modo seguro
+SET SQL_SAFE_UPDATES = 1;
+
+
+-- ===================================================== USADO PARA EVITAR QUARTOS OCUPADOS SEM RESERVA ================================
+--
+use reserva_hotel;
+
+SET SQL_SAFE_UPDATES = 0;
+
+UPDATE QUARTO 
+SET Status = 'Disponível' 
+WHERE Id_quarto NOT IN (
+    SELECT FK_Id_quarto 
+    FROM RESERVA
+);
+
+SET SQL_SAFE_UPDATES = 1;
+
+
+-- ============================================= USADO PARA CONSEGUIR ORDENAR OS QUARTOS COM ORDER BY PELO NÚMERO ================================
+--
+ALTER TABLE QUARTO MODIFY COLUMN NumeroQuarto INT;
+
+-- =============================================================================
+--
+-- Alterar tabela reserva para incluir FK_Id_pagamento e remover MetodoPagamento
+ALTER TABLE reserva
+ADD COLUMN FK_Id_pagamento INT,
+DROP COLUMN MetodoPagamento,
+ADD CONSTRAINT fk_reserva_metodo_pagamento FOREIGN KEY (FK_Id_pagamento) REFERENCES metodo_pagamento(id_metodoPag);
+
+
+DELETE FROM QUARTO
+WHERE Id_quarto = 1;
+
+INSERT INTO QUARTO (NumeroQuarto, TipoQuarto, Preco, Status)
+VALUES 
+    ('101', 'Standard', 150.00, 'Disponível');
